@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+gradio
+pytest
+python-dotenv
+pydantic
