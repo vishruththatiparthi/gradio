@@ -4,3 +4,8 @@ gradio
 pytest
 python-dotenv
 pydantic
+sqlalchemy
+psycopg2-binary
+requests
+
+
