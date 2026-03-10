@@ -4,10 +4,13 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@postgres:5432/todo_db"
+    "sqlite:///./local.db"
 )
 
-engine = create_engine(DATABASE_URL)
+# SQLite needs check_same_thread=False
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
 SessionLocal = sessionmaker(
     autocommit=False,

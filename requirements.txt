@@ -4,8 +4,12 @@ gradio
 pytest
 python-dotenv
 pydantic
+pydantic-settings
 sqlalchemy
 psycopg2-binary
 requests
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
 
 

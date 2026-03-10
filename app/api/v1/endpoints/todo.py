@@ -4,13 +4,18 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db import models
 from app.schemas import todo_schema
+from app.core.security import get_current_user
 
 router = APIRouter()
 
 
 @router.post("/todos", response_model=todo_schema.TodoResponse)
-def create_todo(todo: todo_schema.TodoCreate, db: Session = Depends(get_db)):
-    new_todo = models.Todo(task=todo.task)
+def create_todo(
+    todo: todo_schema.TodoCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    new_todo = models.Todo(task=todo.task, owner_id=current_user.id)
 
     db.add(new_todo)
     db.commit()
@@ -20,13 +25,20 @@ def create_todo(todo: todo_schema.TodoCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/todos", response_model=list[todo_schema.TodoResponse])
-def get_todos(db: Session = Depends(get_db)):
-    return db.query(models.Todo).all()
+def get_todos(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return db.query(models.Todo).filter(models.Todo.owner_id == current_user.id).all()
 
 
 @router.get("/todos/{todo_id}", response_model=todo_schema.TodoResponse)
-def get_todo(todo_id: int, db: Session = Depends(get_db)):
-    todo = db.query(models.Todo).filter(models.Todo.id == todo_id).first()
+def get_todo(
+    todo_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    todo = db.query(models.Todo).filter(models.Todo.id == todo_id, models.Todo.owner_id == current_user.id).first()
 
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
@@ -35,8 +47,13 @@ def get_todo(todo_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/todos/{todo_id}", response_model=todo_schema.TodoResponse)
-def update_todo(todo_id: int, updated: todo_schema.TodoCreate, db: Session = Depends(get_db)):
-    todo = db.query(models.Todo).filter(models.Todo.id == todo_id).first()
+def update_todo(
+    todo_id: int,
+    updated: todo_schema.TodoCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    todo = db.query(models.Todo).filter(models.Todo.id == todo_id, models.Todo.owner_id == current_user.id).first()
 
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
@@ -50,8 +67,12 @@ def update_todo(todo_id: int, updated: todo_schema.TodoCreate, db: Session = Dep
 
 
 @router.delete("/todos/{todo_id}")
-def delete_todo(todo_id: int, db: Session = Depends(get_db)):
-    todo = db.query(models.Todo).filter(models.Todo.id == todo_id).first()
+def delete_todo(
+    todo_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    todo = db.query(models.Todo).filter(models.Todo.id == todo_id, models.Todo.owner_id == current_user.id).first()
 
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
