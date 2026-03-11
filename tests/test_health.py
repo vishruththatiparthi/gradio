@@ -1,10 +1,4 @@
-from app.main import root
-
-import pytest
-
-pytestmark = pytest.mark.anyio
-
-
-async def test_health():
-    response = await root()
-    assert "message" in response
+def test_health(client):
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "message" in response.json()
